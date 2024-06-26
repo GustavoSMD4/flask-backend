@@ -20,7 +20,7 @@ class TokenService:
         tokens = worksheet.get_all_records()
         tokenExiste = next((i for i in tokens if i.get('token') == token), None)
         if tokenExiste is None or tokenExiste.get('idUsuario') != idUsuario:
-            raise Exception('nap foi possivel localizar o token')
+            raise Exception('nao foi possivel localizar o token')
         
     @staticmethod
     def buscarToken(worksheet: gspread.Worksheet, idUsuario):
@@ -32,6 +32,6 @@ class TokenService:
         if token is None:
             tokenValidado = TokenService.createToken(worksheet, idUsuario)
             tokenCriado = TokenPersist.create(worksheet, tokenValidado.idUsuario, tokenValidado.token)
-            return tokenCriado.get('token')
+            return tokenCriado
         
         return token.get('token')
