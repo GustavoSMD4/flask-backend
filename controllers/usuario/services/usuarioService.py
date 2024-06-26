@@ -29,8 +29,7 @@ def verificarUsuarioExiste(worksheetUsuario: gspread.Worksheet, nomeCampoCompara
 
 def verificarLogin(worsheet: gspread.Worksheet, nomeUsuario: str, senha: str):
     usuarioExiste = verificarUsuarioExiste(worsheet, 'usuario', nomeUsuario)
-    if usuarioExiste is None:
-        raise Exception('usuario nao existe')
+    print(usuarioExiste)
     if usuarioExiste.get('senha') != senha:
         raise Exception('senha incorreta')
     
