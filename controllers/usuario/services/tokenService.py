@@ -13,3 +13,10 @@ class TokenService:
         
         token = Token.create(dict(idUsuario=idUsuario, token=tokenCriptografado))
         return token
+    
+    @staticmethod
+    def verificarTokenValido(worksheet: gspread.Worksheet, idUsuario: str, token: str):
+        tokens = worksheet.get_all_records()
+        tokenExiste = next((i for i in tokens if i.get('token') == token), None)
+        if tokenExiste is None or tokenExiste.get('idUsuario') != idUsuario:
+            raise Exception('nap foi possivel localizar o token')

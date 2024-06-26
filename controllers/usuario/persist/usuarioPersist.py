@@ -20,9 +20,11 @@ class UsuarioPersist:
                                             usuario.get('id'),
                                             usuario.get('token'))
         
+        del usuario['token']
         usuarioSalvar = list(usuario.values())
         worksheet.append_row(usuarioSalvar)
         
-        usuario['token'] = tokenUsuario
+        del usuario['senha']
+        del usuario['id']
         return usuario
         

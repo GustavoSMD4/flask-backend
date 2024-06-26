@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import gspread
+from controllers.usuario.services.tokenService import TokenService
 from controllers.usuario.services.usuarioService import UsuarioService
 from controllers.usuario.persist.usuarioPersist import UsuarioPersist
 
@@ -26,10 +27,23 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             response.status_code = 400
             return response
     
-    @app.route('/usuario/consulta')
+    @app.route('/usuario/consulta', methods=['POST'])
     def consulta():
-        usuarios = worksheetUsuario.get_all_records()
-        return jsonify({'body': usuarios}), 200
+        
+        req: dict = request.json
+        idUsuario = req.get('idUsuario')
+        token = req.get('token')
+        
+        try:
+        
+            TokenService.verificarTokenValido(spreadsheet.worksheet('tokens'), idUsuario, token)
+            
+            usuarios = worksheetUsuario.get_all_records()
+            return jsonify({'body': usuarios}), 200
+        
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+        
     
     @app.route('/usuario/create', methods=['POST'])
     def create():
@@ -41,8 +55,8 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             return response
         
         try:
-            usuarioCriado = UsuarioService.createUsuario(spreadsheet, usuario)
-            UsuarioPersist.create(spreadsheet, usuarioCriado.copy())
+            usuarioValidado = UsuarioService.createUsuario(spreadsheet, usuario)
+            usuarioCriado = UsuarioPersist.create(spreadsheet, usuarioValidado.copy())
            
             response = jsonify({'body': usuarioCriado})
             response.status_code = 200
