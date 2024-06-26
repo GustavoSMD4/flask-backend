@@ -16,7 +16,7 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             if not usuario or type(usuario) != dict:
                 raise Exception('usuario nao foi enviado')
 
-            usuarioLogado = UsuarioService.login(worksheetUsuario, usuario)
+            usuarioLogado = UsuarioService.login(spreadsheet, usuario)
             
             response = jsonify({'body': usuarioLogado})
             response.status_code = 200
@@ -43,8 +43,7 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
         
         except Exception as e:
             return jsonify({'error': str(e)}), 400
-        
-    
+          
     @app.route('/usuario/create', methods=['POST'])
     def create():
         usuario = request.json

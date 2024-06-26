@@ -1,4 +1,5 @@
 from controllers.usuario.models.usuario import User
+from controllers.usuario.services.tokenService import TokenService
 from utils.criptografar import criptografar
 import gspread
 
@@ -40,12 +41,18 @@ class UsuarioService:
         return usuario.__dict__
     
     @staticmethod
-    def login(worksheet: gspread.Worksheet, user: dict):
+    def login(spreadsheet: gspread.Spreadsheet, user: dict):
+        worksheet = spreadsheet.worksheet('usuario')
+        
         usuario = user.get('usuario')
         senha = user.get('senha')
         
         senhaCriptografada = criptografar(senha)
         
         usuarioLogado = verificarLogin(worksheet, usuario, senhaCriptografada)
+        token = TokenService.buscarToken(spreadsheet.worksheet('tokens'), usuarioLogado.get('id'))
+        
+        usuarioLogado['token'] = token
+        del usuarioLogado['senha']
         
         return usuarioLogado

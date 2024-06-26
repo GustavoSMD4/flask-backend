@@ -2,6 +2,7 @@ import secrets
 import string
 import gspread
 from controllers.usuario.models.tokenUsuario import Token
+from controllers.usuario.persist.tokenPersist import TokenPersist
 from utils.criptografar import criptografar
 
 
@@ -20,3 +21,17 @@ class TokenService:
         tokenExiste = next((i for i in tokens if i.get('token') == token), None)
         if tokenExiste is None or tokenExiste.get('idUsuario') != idUsuario:
             raise Exception('nap foi possivel localizar o token')
+        
+    @staticmethod
+    def buscarToken(worksheet: gspread.Worksheet, idUsuario):
+        """busca o token do usuário, caso não existir, tentará criar um novo"""
+        
+        tokens = worksheet.get_all_records()
+        token = next((i for i in tokens if i.get('idUsuario') == idUsuario), None)
+        
+        if token is None:
+            tokenValidado = TokenService.createToken(worksheet, idUsuario)
+            tokenCriado = TokenPersist.create(worksheet, tokenValidado.idUsuario, tokenValidado.token)
+            return tokenCriado.get('token')
+        
+        return token.get('token')
