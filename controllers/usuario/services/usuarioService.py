@@ -1,4 +1,5 @@
 from controllers.usuario.models.usuario import User
+from controllers.usuario.persist.usuarioPersist import UsuarioPersist
 from controllers.usuario.services.tokenService import TokenService
 from utils.criptografar import criptografar
 import gspread
@@ -12,11 +13,22 @@ def validarCampos(nome: str, usuario:str, senha: str, role: str):
         raise ValueError('Campo senha vazio ou não é string')
     if type(role) != str or not role or role == '':
         raise ValueError('Campo role vazio ou não é string')
+
+def verificarUsuarioExiste(worksheetUsuario: gspread.Worksheet, nomeCampoComparar: str, valorComparar: str):
+    usuarios = worksheetUsuario.get_all_records()
+    usuarioExiste = next((i for i in usuarios if i[nomeCampoComparar] == valorComparar), None)
+    if usuarioExiste is None:
+        raise Exception('Usuário não localizado')
     
+    indexUsuario = next((index for index, user in usuarios if user['id'] == usuarioExiste['id']), None)
+    if indexUsuario is None:
+        raise Exception('Não foi possível localizar o index do usuário')
+    
+    usuarioExiste['index'] = indexUsuario
+    return usuarioExiste
 
 def verificarLogin(worsheet: gspread.Worksheet, nomeUsuario: str, senha: str):
-    usuarios = worsheet.get_all_records()
-    usuarioExiste = next((i for i in usuarios if i.get('usuario') == nomeUsuario), None)
+    usuarioExiste = verificarUsuarioExiste(worsheet, 'usuario', nomeUsuario)
     if usuarioExiste is None:
         raise Exception('usuario nao existe')
     if usuarioExiste.get('senha') != senha:
@@ -56,3 +68,28 @@ class UsuarioService:
         del usuarioLogado['senha']
         
         return usuarioLogado
+    
+    @staticmethod
+    def updateUsuario(spreadsheet: gspread.Spreadsheet, user: dict):
+        id = user.get('id')
+        nome = user.get('nome')
+        usuario = user.get('usuario')
+        senha = user.get('senha')
+        role = user.get('role')
+        
+        validarCampos(nome, usuario, senha, role)
+        
+        worksheetUsuario = spreadsheet.worksheet('usuario')
+        usuarioExiste = verificarUsuarioExiste(worksheetUsuario, 'id', id)
+        
+        usuarioModificado = UsuarioPersist.update(spreadsheet, usuarioExiste)
+        
+        return usuarioModificado
+        
+        
+    
+    
+    
+    
+    
+    

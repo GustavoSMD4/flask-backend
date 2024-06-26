@@ -30,11 +30,11 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
     @app.route('/usuario/consulta', methods=['POST'])
     def consulta():
         
-        req: dict = request.json
-        idUsuario = req.get('idUsuario')
-        token = req.get('token')
-        
         try:
+            
+            req: dict = request.json
+            idUsuario = req.get('idUsuario')
+            token = req.get('token')
         
             TokenService.verificarTokenValido(spreadsheet.worksheet('tokens'), idUsuario, token)
             
@@ -65,6 +65,18 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             response = jsonify({'error': str(e)})
             response.status_code = 400
             return response
+    
+    @app.route('/usuario/update')
+    def update():
+        try:
+            usuario: dict = request.json
+            
+            usuarioModificado = UsuarioService.updateUsuario(spreadsheet, usuario)
+            
+            return jsonify({'body': usuarioModificado}), 200
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
     
 if __name__ == '__main__':
     usuarioApi()

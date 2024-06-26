@@ -28,3 +28,19 @@ class UsuarioPersist:
         del usuario['id']
         return usuario
         
+    @staticmethod
+    def update(spreadsheet: gspread.Spreadsheet, usuario: dict):
+        worksheetUsuario = spreadsheet.worksheet('usuario')
+        
+        index = usuario.get('index')
+        
+        numeroNaPlanilha = index + 2
+        
+        del usuario['index']
+        usuarioUpdate = [[usuario.values()]]
+        
+        worksheetUsuario.update(usuarioUpdate, range_name=F"A{numeroNaPlanilha}:E{numeroNaPlanilha}")
+        
+        return usuario
+        
+        
