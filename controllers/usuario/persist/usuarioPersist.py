@@ -49,4 +49,18 @@ class UsuarioPersist:
         
         return usuarioEditar
         
+    @staticmethod
+    def delete(spreadsheet: gspread.Spreadsheet, usuarioDelete: dict):
+        worksheet = spreadsheet.worksheet('usuario')
+        
+        index = usuarioDelete.get('index') + 2
+        worksheet.delete_rows(index, index)
+        
+        TokenService.deleteToken(spreadsheet, usuarioDelete.get('id'))
+        
+        del usuarioDelete['index']
+        
+        return usuarioDelete
+        
+        
         

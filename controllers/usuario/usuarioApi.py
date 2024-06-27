@@ -82,5 +82,20 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
         except Exception as e:
             return jsonify({'error': str(e)}), 400
     
+    @app.route('/usuario/delete', methods=['POST'])
+    def delete():
+        try:
+            req: dict = request.json
+            
+            TokenService.verificarTokenValido(spreadsheet, req.get('idUsuario'), req.get('token'))
+            
+            usuarioDeletado = UsuarioService.deleteUsuario(spreadsheet, req)
+            
+            return jsonify({'content': usuarioDeletado}), 200
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+    
+    
 if __name__ == '__main__':
     usuarioApi()

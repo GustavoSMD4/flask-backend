@@ -67,7 +67,7 @@ class UsuarioService:
         usuarioLogado = verificarLogin(worksheet, usuario, senhaCriptografada)
         token = TokenService.buscarToken(spreadsheet, usuarioLogado.get('id'))
         
-        usuarioLogado['token'] = token
+        usuarioLogado['token'] = token.get('token')
         del usuarioLogado['senha']
         
         return usuarioLogado
@@ -95,8 +95,20 @@ class UsuarioService:
         
         return usuarioModificado
         
+    @staticmethod
+    def deleteUsuario(spreadsheet: gspread.Spreadsheet, req: dict):
+        worksheetUsuario = spreadsheet.worksheet('usuario')
         
-    
+        idUsuarioDelete: str = req.get('id')
+        idUsuario: str = req.get('idUsuario')
+        token: str = req.get('token')
+        
+        usuario = verificarUsuarioExiste(worksheetUsuario, 'id', idUsuarioDelete, True)
+
+        usuarioDeletado = UsuarioPersist.delete(spreadsheet, usuario)
+        
+        return usuarioDeletado
+
     
     
     
