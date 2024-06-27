@@ -37,7 +37,7 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             idUsuario = req.get('idUsuario')
             token = req.get('token')
         
-            TokenService.verificarTokenValido(spreadsheet.worksheet('tokens'), idUsuario, token)
+            TokenService.verificarTokenValido(spreadsheet, idUsuario, token)
             
             usuarios = worksheetUsuario.get_all_records()
             return jsonify({'content': usuarios}), 200
@@ -50,7 +50,6 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
         usuario = request.json
         
         try:
-            
             if request.method != 'POST':
                 raise Exception('o method usado não foi POST')
             
