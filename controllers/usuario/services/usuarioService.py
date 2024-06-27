@@ -65,7 +65,7 @@ class UsuarioService:
         senhaCriptografada = criptografar(senha)
         
         usuarioLogado = verificarLogin(worksheet, usuario, senhaCriptografada)
-        token = TokenService.buscarToken(spreadsheet.worksheet('tokens'), usuarioLogado.get('id'))
+        token = TokenService.buscarToken(spreadsheet, usuarioLogado.get('id'))
         
         usuarioLogado['token'] = token
         del usuarioLogado['senha']
