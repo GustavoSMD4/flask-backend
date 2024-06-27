@@ -16,9 +16,7 @@ class UsuarioPersist:
         
         verificarUsuarioExiste(worksheet, usuario.get('usuario'))
                 
-        tokenUsuario = TokenPersist.create(spreadsheet.worksheet('tokens'),
-                                            usuario.get('id'),
-                                            usuario.get('token'))
+        TokenPersist.create(spreadsheet, usuario.get('id'), usuario.get('token'))
         
         del usuario['token']
         usuarioSalvar = list(usuario.values())
@@ -29,18 +27,26 @@ class UsuarioPersist:
         return usuario
         
     @staticmethod
-    def update(spreadsheet: gspread.Spreadsheet, usuario: dict):
+    def update(spreadsheet: gspread.Spreadsheet, usuarioEditar: dict):
         worksheetUsuario = spreadsheet.worksheet('usuario')
         
-        index = usuario.get('index')
+        index = usuarioEditar.get('index')
         
         numeroNaPlanilha = index + 2
         
-        del usuario['index']
-        usuarioUpdate = [[usuario.values()]]
+        del usuarioEditar['index']
+        del usuarioEditar['token']
+
+        usuarioUpdate = [[
+            usuarioEditar.get('id'),
+            usuarioEditar.get('nome'),
+            usuarioEditar.get('usuario'),
+            usuarioEditar.get('senha'),
+            usuarioEditar.get('role'),
+        ]]
         
         worksheetUsuario.update(usuarioUpdate, range_name=F"A{numeroNaPlanilha}:E{numeroNaPlanilha}")
         
-        return usuario
+        return usuarioEditar
         
         

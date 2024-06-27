@@ -18,7 +18,7 @@ class User:
         usuario = user.get('usuario')
         senha = user.get('senha')
         role = user.get('role')
-        token = TokenService.createToken(spreadsheet.worksheet('tokens'), id)
+        token = TokenService.createToken(spreadsheet, id)
         
         usuarioCriado = cls(id, nome, usuario, senha, role, token.token)
         

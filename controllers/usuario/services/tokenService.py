@@ -8,7 +8,7 @@ from utils.criptografar import criptografar
 
 class TokenService:
     @staticmethod
-    def createToken(worksheet: gspread.Worksheet, idUsuario: str):
+    def createToken(spreadsheet: gspread.Spreadsheet, idUsuario: str):
         caracteres = string.ascii_letters + string.digits + string.punctuation
         tokenCriptografado = criptografar(''.join(secrets.choice(caracteres) for _ in range(12)))
         
@@ -16,16 +16,18 @@ class TokenService:
         return token
     
     @staticmethod
-    def verificarTokenValido(worksheet: gspread.Worksheet, idUsuario: str, token: str):
+    def verificarTokenValido(spreadsheet: gspread.Spreadsheet, idUsuario: str, token: str):
+        worksheet = spreadsheet.worksheet('tokens')
         tokens = worksheet.get_all_records()
         tokenExiste = next((i for i in tokens if i.get('token') == token), None)
         if tokenExiste is None or tokenExiste.get('idUsuario') != idUsuario:
             raise Exception('nao foi possivel localizar o token')
         
     @staticmethod
-    def buscarToken(worksheet: gspread.Worksheet, idUsuario):
+    def buscarToken(spreadsheet: gspread.Spreadsheet, idUsuario):
         """busca o token do usuário, caso não existir, tentará criar um novo"""
         
+        worksheet = spreadsheet.worksheet('tokens')
         tokens = worksheet.get_all_records()
         token = next((i for i in tokens if i.get('idUsuario') == idUsuario), None)
         

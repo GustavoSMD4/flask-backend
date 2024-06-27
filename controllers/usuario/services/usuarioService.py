@@ -2,6 +2,7 @@ from controllers.usuario.models.usuario import User
 from controllers.usuario.persist.usuarioPersist import UsuarioPersist
 from controllers.usuario.services.tokenService import TokenService
 from utils.criptografar import criptografar
+from functools import cache
 import gspread
 
 def validarCampos(nome: str, usuario:str, senha: str, role: str):
@@ -14,22 +15,24 @@ def validarCampos(nome: str, usuario:str, senha: str, role: str):
     if type(role) != str or not role or role == '':
         raise ValueError('Campo role vazio ou não é string')
 
-def verificarUsuarioExiste(worksheetUsuario: gspread.Worksheet, nomeCampoComparar: str, valorComparar: str):
+@cache
+def verificarUsuarioExiste(worksheetUsuario: gspread.Worksheet, nomeCampoComparar: str, valorComparar, retornarIndex: bool):
     usuarios = worksheetUsuario.get_all_records()
     usuarioExiste = next((i for i in usuarios if i[nomeCampoComparar] == valorComparar), None)
     if usuarioExiste is None:
         raise Exception('Usuário não localizado')
+    if retornarIndex:
+        indexUsuario = next((index for index, user in enumerate(usuarios) if user['id'] == usuarioExiste['id']), None)
+        if indexUsuario is None:
+            raise Exception('Não foi possível localizar o index do usuário')
+
+        usuarioExiste['index'] = indexUsuario
+        return usuarioExiste
     
-    indexUsuario = next((index for index, user in usuarios if user['id'] == usuarioExiste['id']), None)
-    if indexUsuario is None:
-        raise Exception('Não foi possível localizar o index do usuário')
-    
-    usuarioExiste['index'] = indexUsuario
     return usuarioExiste
 
 def verificarLogin(worsheet: gspread.Worksheet, nomeUsuario: str, senha: str):
-    usuarioExiste = verificarUsuarioExiste(worsheet, 'usuario', nomeUsuario)
-    print(usuarioExiste)
+    usuarioExiste = verificarUsuarioExiste(worsheet, 'usuario', nomeUsuario, False)
     if usuarioExiste.get('senha') != senha:
         raise Exception('senha incorreta')
     
@@ -48,8 +51,9 @@ class UsuarioService:
         senhaCriptografada = criptografar(senha)
         
         usuario = User.create(spreadsheet, dict(nome=nome, usuario=usuario, senha=senhaCriptografada, role=role))
+        usuarioCriado = UsuarioPersist.create(spreadsheet, usuario.__dict__)
         
-        return usuario.__dict__
+        return usuarioCriado
     
     @staticmethod
     def login(spreadsheet: gspread.Spreadsheet, user: dict):
@@ -79,9 +83,15 @@ class UsuarioService:
         validarCampos(nome, usuario, senha, role)
         
         worksheetUsuario = spreadsheet.worksheet('usuario')
-        usuarioExiste = verificarUsuarioExiste(worksheetUsuario, 'id', id)
         
-        usuarioModificado = UsuarioPersist.update(spreadsheet, usuarioExiste)
+        senhaCriptografada = criptografar(senha)
+        
+        usuarioExiste = verificarUsuarioExiste(worksheetUsuario, 'id', id, True)
+        
+        user['index'] = usuarioExiste.get('index')
+        user['senha'] = senhaCriptografada
+        
+        usuarioModificado = UsuarioPersist.update(spreadsheet, user)
         
         return usuarioModificado
         

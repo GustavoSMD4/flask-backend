@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import gspread
 from controllers.usuario.services.tokenService import TokenService
 from controllers.usuario.services.usuarioService import UsuarioService
-from controllers.usuario.persist.usuarioPersist import UsuarioPersist
 
 def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
     
@@ -13,14 +12,13 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
         usuario: dict = request.json
         
         try:
-            if not usuario or type(usuario) != dict:
-                raise Exception('usuario nao foi enviado')
+            
+            if request.method != 'POST':
+                raise Exception('o method usado não foi POST')
 
             usuarioLogado = UsuarioService.login(spreadsheet, usuario)
             
-            response = jsonify({'body': usuarioLogado})
-            response.status_code = 200
-            return response
+            return jsonify({'content': usuarioLogado}), 200
             
         except Exception as e:
             response = jsonify({'error': str(e)})
@@ -32,6 +30,9 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
         
         try:
             
+            if request.method != 'POST':
+                raise Exception('o method usado não foi POST')
+            
             req: dict = request.json
             idUsuario = req.get('idUsuario')
             token = req.get('token')
@@ -39,7 +40,7 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
             TokenService.verificarTokenValido(spreadsheet.worksheet('tokens'), idUsuario, token)
             
             usuarios = worksheetUsuario.get_all_records()
-            return jsonify({'body': usuarios}), 200
+            return jsonify({'content': usuarios}), 200
         
         except Exception as e:
             return jsonify({'error': str(e)}), 400
@@ -48,32 +49,36 @@ def usuarioApi(app: Flask, spreadsheet: gspread.Spreadsheet):
     def create():
         usuario = request.json
         
-        if not usuario:
-            response = jsonify({'error': 'usuario não foi enviado'})
-            response.status = 400
-            return response
-        
         try:
-            usuarioValidado = UsuarioService.createUsuario(spreadsheet, usuario)
-            usuarioCriado = UsuarioPersist.create(spreadsheet, usuarioValidado.copy())
-           
-            response = jsonify({'body': usuarioCriado})
-            response.status_code = 200
-            return response
+            
+            if request.method != 'POST':
+                raise Exception('o method usado não foi POST')
+            
+            usuarioCriado = UsuarioService.createUsuario(spreadsheet, usuario)
+        
+            return jsonify({'content': usuarioCriado}), 200
            
         except Exception as e:
             response = jsonify({'error': str(e)})
             response.status_code = 400
             return response
     
-    @app.route('/usuario/update')
+    @app.route('/usuario/update', methods=['POST'])
     def update():
         try:
+            
+            if request.method != 'POST':
+                raise Exception('o method usado não foi POST')
+            
             usuario: dict = request.json
+            token = usuario.get('token')
+            idUsuario = usuario.get('id')
+            
+            TokenService.verificarTokenValido(spreadsheet, idUsuario, token)
             
             usuarioModificado = UsuarioService.updateUsuario(spreadsheet, usuario)
             
-            return jsonify({'body': usuarioModificado}), 200
+            return jsonify({'content': usuarioModificado}), 200
             
         except Exception as e:
             return jsonify({'error': str(e)}), 400

@@ -7,7 +7,8 @@ def verificarTokenExiste(worksheet: gspread.Worksheet, idUsuario: str):
 
 class TokenPersist:
     @staticmethod
-    def create(worksheet: gspread.Worksheet, idUsuario: str, tokenUsuario: str):
+    def create(spreadsheeet: gspread.Spreadsheet, idUsuario: str, tokenUsuario: str):
+        worksheet = spreadsheeet.worksheet('tokens')
         tokenExiste = verificarTokenExiste(worksheet, idUsuario)
         
         if tokenExiste is not None:
